@@ -89,15 +89,20 @@
 
     created () {
       // let app = getApp()
-      // const data = {ver: '1', method: 'getUserToken'}
+      const data = {ver: '1', method: 'getUserToken'}
       // jmwxmp.checkSession(function () {
-      //   const data = {imei: '868120128488170', ver: '1', method: 'getBindInfo'}
-      //   api.login(data).then(function (res) {
-      //
-      //   }, function (res) {
-      //
-      //   })
+      //   // const data = {imei: '868120128488170', ver: '1', method: 'getBindInfo'}
+      //   // jmwxmp.request('http://172.17.0.249:8878/api', '', 'application/x-www-form-urlencoded', data).then(function (res) {
+      //   //
+      //   // }, function (res) {
+      //   //
+      //   // })
       // }, data)
+      jmwxmp.request({url: 'http://172.17.0.249:8878/api', contentType: 'application/x-www-form-urlencoded', data: data}).then(function (res) {
+
+      }, function (res) {
+
+      })
     },
 
     onReady () {
@@ -125,49 +130,6 @@
       })
       ctx.restore()
       ctx.draw()
-
-      // that.describe = wx.createSelectorQuery();
-      // that.describe.select('#describe').boundingClientRect();
-      // that.describe.exec(function (res){
-      //   if(res[0]){
-      //     that.sum = Math.floor(res[0].height / (200*App.globalData.scale));
-      //     if (that.sum <= 0) {
-      //       that.setData({
-      //         moreTextShow: false,
-      //         describeShowAll: true,
-      //         describeWrapH: res[0].height+'px'
-      //       });
-      //     } else {
-      //       that.setData({
-      //         moreTextShow: true,
-      //         describeShowAll: false,
-      //         describeWrapH: '150rpx'
-      //       });
-      //     }
-      //   }else{
-      //     that.setData({
-      //       moreTextShow: false,
-      //       describeShowAll: true,
-      //       describeWrapH: ''
-      //     });
-      //   }
-      // });
-      //
-      // that.describe = wx.createSelectorQuery();
-      // that.describe.select('#describe').boundingClientRect();
-      // that.describe.exec(function (res) {
-      //   if(!that.data.describeShowAll){
-      //     that.setData({
-      //       describeWrapH: res[0].height+'px',
-      //       describeShowAll: true
-      //     });
-      //   }else{
-      //     that.setData({
-      //       describeWrapH: '150rpx',
-      //       describeShowAll: false
-      //     });
-      //   }
-      // });
     }
   }
 </script>

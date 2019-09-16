@@ -1,36 +1,47 @@
+/**
+ * @class Jmwxmp
+ * @constructor 默认的配置
+ * @description 微信小程序api常用方法二次封装
+ */
 class Jmwxmp {
   /**
    * 自定义参数
    * @param {object} config
+   * config.apiHost 服务器请求接口地址公共抬头部分
    * config.login login服务器请求自定义
    * config.login = {url: '', method: '', contentType: '', code: ''}
    * config.showModal = {}
    */
   constructor (config) {
     this.config = config || {}
+    this.apiHost = this.apiHost || ''
     this.config.login = this.config.login || {}
     this.config.showModal = this.config.showModal || {}
   }
 
   /**
    * 服务请求
-   * @param {string} url 请求地址
-   * @param {string} method 请求方式
-   * @param {string} contentType HTTP Header contentType
-   * @param {object} data 请求参数
+   * @param {object} obj 请求参数
    * @returns {returns} Promise 接口请求回调函数 resolve: 成功, reject: 失败
-   * @use new Jmwxmp().request('接口请求地址', '接口请求方式', '头部数据方式', data: {'请求参数'}).then(function(res){}, function(res){})
+   * @use new Jmwxmp().request({url:'接口请求地址', method:'接口请求方式', contentType:'头部数据方式', data: {'传参'}}).then(function(res){}, function(res){})
    */
-  request (url, method, contentType, data) {
+  request (obj) {
+    const that = this
+    let json = {
+      url: obj.url.indexOf('http') === -1 ? that.config.apiHost + obj.url : obj.url,
+      method: obj.method || 'GET',
+      contentType: obj.contentType || 'application/json',
+      data: obj.data || {}
+    }
     let token = wx.getStorageSync('token') // 本地缓存token值
     if (!token) token = ''
     return new Promise(function (resolve, reject) {
       wx.request({
-        url: url,
-        method: method || 'GET',
-        header: {'content-type': contentType || 'application/json', 'token': token},
+        url: json.url,
+        method: json.method,
+        header: {'content-type': json.contentType, 'token': token},
         dataType: 'json',
-        data: data || {},
+        data: json.data,
         success (res) {
           if (res.statusCode === 200) {
             typeof resolve === 'function' && resolve(res.data)
@@ -121,8 +132,13 @@ class Jmwxmp {
           if (param) {
             Object.assign(data, param)
           }
-          that.request(json.url, json.method, json.contentType, data).then(function (res) {
-            if (res.code === 200) {
+          that.request({
+            url: json.url,
+            method: json.method,
+            contentType: json.contentType,
+            data: data
+          }).then(function (res) {
+            if (res.code === 0) {
               wx.setStorage({
                 key: 'token',
                 data: res.data.token,
@@ -143,18 +159,21 @@ class Jmwxmp {
 
   /**
    * 选择图片
-   * @param {number} count 选择图片数量
-   * @param {Array.<string>} sizeType ['图片尺寸: 原图, 压缩图']
-   * @param {Array.<string>} sourceType ['图片来源: 相册, 相机']
+   * @param {object} obj 参数
    * @returns {function} Promise 回调函数 resolve: 成功, reject: 失败
-   * @use new Jmwxmp().chooseImage({选择图片数量, ['图片尺寸: 原图, 压缩图'], ['图片来源: 相册, 相机']}).then(function(res){}, function(res){})
+   * @use new Jmwxmp().chooseImage({count: 选择图片数量, sizeType: ['图片尺寸: 原图, 压缩图'], sourceType: ['图片来源: 相册, 相机']}).then(function(res){}, function(res){})
    */
-  chooseImage (count, sizeType, sourceType) {
+  chooseImage (obj) {
+    let json = {
+      count: obj.count || 9,
+      sizeType: obj.sizeType || ['original', 'compressed'],
+      sourceType: obj.sourceType || ['album', 'camera']
+    }
     return new Promise(function (resolve, reject) {
       wx.chooseImage({
-        count: count || 9, // 默认: 9
-        sizeType: sizeType || ['original', 'compressed'],
-        sourceType: sourceType || ['album', 'camera'],
+        count: json.count, // 默认: 9
+        sizeType: json.sizeType,
+        sourceType: json.sourceType,
         success (res) {
           typeof resolve === 'function' && resolve(res)
         },
@@ -167,20 +186,23 @@ class Jmwxmp {
 
   /**
    * 选择视频
-   * @param {Array.<string>} sourceType ['视频来源: 相册, 相机']
-   * @param {boolean} compressed 是否压缩
-   * @param {number} maxDuration 拍摄时长 最多60 单位秒
-   * @param {string} camera 默认拉起前置或者后置摄像头 部分Android手机不支持
+   * @param {object} obj 参数
    * @returns {function} Promise 回调函数 resolve: 成功, reject: 失败
-   * @use new Jmwxmp().chooseVideo({选择图片数量, ['图片尺寸: 原图, 压缩图'], ['图片来源: 相册, 相机']}).then(function(res){}, function(res){})
+   * @use new Jmwxmp().chooseVideo({sourceType: ['视频来源: 相册, 相机'], compressed: 是否压缩, maxDuration: 拍摄时长 最多60 单位秒, camera: '摄像头'}).then(function(res){}, function(res){})
    */
-  chooseVideo (sourceType, compressed, maxDuration, camera) {
+  chooseVideo (obj) {
+    let json = {
+      sourceType: obj.sourceType || ['album', 'camera'],
+      compressed: obj.compressed || true,
+      maxDuration: obj.maxDuration || 60,
+      camera: obj.camera || 'back'
+    }
     return new Promise(function (resolve, reject) {
       wx.chooseVideo({
-        sourceType: sourceType || ['album', 'camera'],
-        compressed: compressed,
-        maxDuration: maxDuration || 60,
-        camera: camera || 'back',
+        sourceType: json.sourceType,
+        compressed: json.compressed,
+        maxDuration: json.maxDuration,
+        camera: json.camera,
         success (res) {
           typeof resolve === 'function' && resolve(res)
         },
@@ -193,24 +215,28 @@ class Jmwxmp {
 
   /**
    * 上传文件
-   * @param {string} url 服务器请求地址
-   * @param {string} filePath 文件资源路径
-   * @param {string} name 文件对应的 key
-   * @param {string} contentType HTTP Header contentType
-   * @param {object} formData 其他form数据
+   * @param {object} obj 参数
    * @returns {function} Promise 回调函数 resolve: 成功, reject: 失败
-   * @use new Jmwxmp().uploadFile('服务器地址', '文件资源路径', 'HTTP Header contentType', {'其他form data'}).then(function(res){}, function(res){})
+   * @use new Jmwxmp().uploadFile({url: '服务器地址', filePath: '文件资源路径', name: '文件对应的 key', contentType: 'HTTP Header contentType', formData: {'其他form data'}}).then(function(res){}, function(res){})
    */
-  uploadFile (url, filePath, name, contentType, formData) {
+  uploadFile (obj) {
+    const that = this
+    let json = {
+      url: that.config.apiHost + obj.url || that.config.apiHost + '',
+      filePath: obj.filePath,
+      name: obj.name,
+      contentType: obj.contentType || 'multipart/form-data',
+      formData: obj.formData || {}
+    }
     let token = wx.getStorageSync('token')
     if (!token) token = ''
     return new Promise(function (resolve, reject) {
       wx.uploadFile({
-        url: url,
-        filePath: filePath,
-        name: name,
-        header: {'content-type': contentType || 'multipart/form-data', 'token': token},
-        formData: formData || {},
+        url: json.url,
+        filePath: json.filePath,
+        name: json.name,
+        header: {'content-type': json.contentType, 'token': token},
+        formData: json.formData,
         success (res) {
           if (res.statusCode === 200) {
             typeof resolve === 'function' && resolve(res.data)
